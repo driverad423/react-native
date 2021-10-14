@@ -1,7 +1,8 @@
-import React, {useState} from "react";
+import React, {useState,useEffect} from "react";
 import {View, Button, TextInput, ScrollView, StyleSheet} from 'react-native';
 import { TextInputMask} from "react-native-masked-text";
 import firebase from "../database/firebase";
+import * as Location from "expo-location";
 
 const CreateUserScreen = (props) =>{
 
@@ -44,6 +45,35 @@ const CreateUserScreen = (props) =>{
     };
 
 
+    const [position, setPosition] = useState(null);
+
+  const getPosition = async () => {
+    try {
+      const { coords } = await Location.getCurrentPositionAsync({});
+      setPosition(coords);
+    } catch (error) {
+      console.log("getPosition -> error", error);
+      setPosition(null);
+    }
+  };
+
+  const entryPoint = async () => {
+    try {
+      const { status } = await Location.requestPermissionsAsync();
+      if (status === "granted") {
+        getPosition();
+      }
+    } catch (error) {
+      console.log("getPermissionAndPosition -> error", error);
+    }
+  };
+
+  useEffect(() => {
+    entryPoint();
+  }, []);
+
+
+
     return (
 
         <ScrollView style={styles.container}>
@@ -64,6 +94,13 @@ const CreateUserScreen = (props) =>{
                 <TextInput placeholder="Dirección"
                 onChangeText={(value) => handleChangeText('direccion', value)}/>
             </View>
+
+            <View>
+            <Text>Latitude: {position.latitude}</Text>
+          </View>
+          <View>
+            <Text>Longitude: {position.longitude} </Text>
+          </View>
 
             <View>
                 <Button title="Guardar" onPress={()=>SaveUser()}/>
